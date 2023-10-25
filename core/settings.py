@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
+    'django_minio_backend',
 ]
 
 MIDDLEWARE = [
@@ -119,7 +121,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -135,3 +138,55 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
+
+
+
+from datetime import timedelta
+from typing import List, Tuple
+
+MINIO_ENDPOINT = 'http://127.0.0.1:9000'
+MINIO_EXTERNAL_ENDPOINT = ""  # Default is same as MINIO_ENDPOINT
+MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False  # Default is same as MINIO_USE_HTTPS
+MINIO_REGION = None  # Default is set to None
+MINIO_ACCESS_KEY = 'yourMinioAccessKey'
+MINIO_SECRET_KEY = 'yourVeryS3cr3tP4ssw0rd'
+MINIO_USE_HTTPS = False
+MINIO_URL_EXPIRY_HOURS = timedelta(days=1)  # Default is 7 days (longest) if not defined
+MINIO_CONSISTENCY_CHECK_ON_START = True
+# MINIO_PRIVATE_BUCKETS = [
+#     'django-backend-dev-private',
+# ]
+
+MINIO_PRIVATE_BUCKETS = [
+    'django-backend-dev-private',
+]
+
+MINIO_PUBLIC_BUCKETS = [
+
+]
+
+MINIO_POLICY_HOOKS: List[Tuple[str, dict]] = []
+# MINIO_MEDIA_FILES_BUCKET = 'my-media-files-bucket'  # replacement for MEDIA_ROOT
+# MINIO_MEDIA_FILES_BUCKET = MEDIA_ROOT  # replacement for MEDIA_ROOT
+# MINIO_STATIC_FILES_BUCKET = STATIC_URL  # replacement for STATIC_ROOT
+MINIO_BUCKET_CHECK_ON_SAVE = True  # Default: True // Creates bucket if missing, then save
+
+# Custom HTTP Client (OPTIONAL)
+import os
+import certifi
+import urllib3
+timeout = timedelta(minutes=5).seconds
+ca_certs = os.environ.get('SSL_CERT_FILE') or certifi.where()
+MINIO_HTTP_CLIENT: urllib3.poolmanager.PoolManager = urllib3.PoolManager(
+    timeout=urllib3.util.Timeout(connect=timeout, read=timeout),
+    maxsize=10,
+    cert_reqs='CERT_REQUIRED',
+    ca_certs=ca_certs,
+    retries=urllib3.Retry(
+        total=5,
+        backoff_factor=0.2,
+        status_forcelist=[500, 502, 503, 504]
+    )
+)
