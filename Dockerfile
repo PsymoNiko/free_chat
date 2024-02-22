@@ -9,17 +9,13 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 
 # Copy the requirements file into the container at /code/
-COPY ./myproject/requirements.txt /code/
+COPY requirements.txt /code/
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Copy the current directory contents into the container at /code/
-COPY ./myproject /code/
+COPY . /code/
 
-# Expose port 8000 to allow communication to/from server
-EXPOSE 8000
 
-# Define the command to run the application
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "myproject.wsgi:application"]
 

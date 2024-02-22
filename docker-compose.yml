@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: free_chat_backend
+    build:
+
+      context: .
+      dockerfile: Dockerfile
+#    command: gunicorn -b 0.0.0.0:8000 myproject.wsgi:application
+    command: sh -c "python manage.py migrate && python manage.py runserver"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+
+    networks:
+      - free-chat
+
+  redis:
+    image: bitnami/redis:latest
+    container_name: free_chat_redis
+    ports:
+      - "6370:6379"
+    volumes:
+#      - redis_data:/data
+      - redis_data:/bitnami/redis/data
+    networks:
+      - free-chat
+
+
+volumes:
+  redis_data:
+    external: false
+
+
+networks:
+  free-chat:
+    driver: bridge
